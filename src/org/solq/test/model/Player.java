@@ -3,15 +3,18 @@ package org.solq.test.model;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.solq.mapdb.anno.IndexConfig;
+import org.solq.mapdb.anno.MapDbConfig;
 import org.solq.mapdb.model.ID;
-import org.solq.mapdb.model.MapDbConfig;
 
 @MapDbConfig(checkPeriod = 500, exTime = 1, maxSize = 3)
 public class Player implements ID<Long> {
 
+    public final static String INDEX_NAME = "name";
     private long id;
+    @IndexConfig(INDEX_NAME)
     private String name;
-
+    @IndexConfig
     private String addr;
 
     private Map<String, Integer> pack;
@@ -21,7 +24,7 @@ public class Player implements ID<Long> {
 	ret.id = id;
 	ret.name = name;
 	ret.addr = addr;
-	ret.pack = new HashMap<>();
+	ret.pack = new HashMap<>(200);
 	for (int i = 0; i < 200; i++) {
 	    ret.pack.put(i + "", i);
 	}

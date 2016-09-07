@@ -1,13 +1,38 @@
 package org.solq.mapdb.tool;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.function.Consumer;
 
 /**
  * 反射工具类
+ * 
+ * @author solq
  */
 @SuppressWarnings("unchecked")
 public class ReflectUtils {
+
+    public static void forEachClassField(Object obj, Consumer<Field> action) {
+	Class<?> clazz = obj.getClass();
+	if (obj instanceof Class) {
+	    clazz = (Class<?>) obj;
+	}
+	while (clazz != Object.class) {
+	    Field[] fields = clazz.getDeclaredFields();
+	    for (Field field : fields) {
+		field.setAccessible(true);
+		final int mod = field.getModifiers();
+		if (Modifier.isFinal(mod) || Modifier.isTransient(mod) || Modifier.isStatic(mod)) {
+		    continue;
+		}
+
+		action.accept(field);
+	    }
+	    clazz = clazz.getSuperclass();
+	}
+    }
 
     /**
      * 获得超类的参数类型，取第一个参数类型

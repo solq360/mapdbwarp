@@ -6,7 +6,6 @@ import org.mapdb.DataInput2;
 import org.mapdb.DataOutput2;
 import org.mapdb.Serializer;
 import org.mapdb.serializer.GroupSerializerObjectArray;
-import org.solq.mapdb.model.ISerializer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -15,7 +14,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * 
  * @author solq
  **/
-public class SerializerJson<T> extends GroupSerializerObjectArray<T> implements ISerializer<T> {
+public class SerializerJson<T> extends GroupSerializerObjectArray<T> {
     ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private Class<T> classType;
 
@@ -23,11 +22,6 @@ public class SerializerJson<T> extends GroupSerializerObjectArray<T> implements 
 	SerializerJson<T> ret = new SerializerJson<T>();
 	ret.classType = clz;
 	return ret;
-    }
-
-    @Override
-    public Class<T> getType() {
-	return classType;
     }
 
     @Override
@@ -39,7 +33,7 @@ public class SerializerJson<T> extends GroupSerializerObjectArray<T> implements 
     }
 
     @Override
-    public T deserialize(DataInput2 in, int available) throws IOException {
+    public T deserialize(DataInput2 in, int available) throws IOException { 
 	int len = in.readInt();
 	byte[] bytes = new byte[len];
 	in.readFully(bytes, 0, len);

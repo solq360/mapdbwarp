@@ -1,4 +1,4 @@
-package org.solq.mapdb.model;
+package org.solq.mapdb.anno;
 
 import java.lang.annotation.Annotation;
 import java.lang.annotation.ElementType;
@@ -30,6 +30,11 @@ public @interface MapDbConfig {
 	public int checkPeriod() {
 	    return 60;
 	}
+
+	@Override
+	public boolean openAsync() {
+ 	    return true;
+	}
     };
 
     public int exTime();
@@ -37,4 +42,6 @@ public @interface MapDbConfig {
     public int maxSize();
 
     public int checkPeriod();
+
+    public boolean openAsync() default true;
 }
