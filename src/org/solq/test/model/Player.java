@@ -7,7 +7,7 @@ import org.solq.mapdb.anno.IndexConfig;
 import org.solq.mapdb.anno.MapDbConfig;
 import org.solq.mapdb.model.ID;
 
-@MapDbConfig(checkPeriod = 500, exTime = 1, maxSize = 3)
+@MapDbConfig(checkPeriod = 60*1000*5, exTime = 60*1000*30, maxSize =4000,openAsync=false)
 public class Player implements ID<Long> {
 
     public final static String INDEX_NAME = "name";

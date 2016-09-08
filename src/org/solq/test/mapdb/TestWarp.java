@@ -1,5 +1,9 @@
 package org.solq.test.mapdb;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+
 import org.junit.Test;
 import org.mapdb.Serializer;
 import org.solq.mapdb.anno.MapDbConfig;
@@ -61,13 +65,15 @@ public class TestWarp {
     @Test
     public void index_test() throws InterruptedException {
 	HTreeMapWarp<Long, Player> hmw = HTreeMapWarp.of("d://a/", "test", false, SerializerProxy.of(Long.class, Serializer.LONG), SerializerProxy.ofSerializerJson(Player.class));
- 
+	List<Player> ret =new LinkedList<>();
 	long start = System.currentTimeMillis(); 
 	hmw.forEach(Player.INDEX_NAME, (Long id, String name) -> {
 	    return id > 89990l;
 	} , (Player ep) -> {
-	    System.out.println("查询到  : " + ep.getId());
+	    ret.add(ep);
+	    //System.out.println("查询到  : " + ep.getId());	    
 	});
+	System.out.println(ret.size());
 	Tool.printlnTime("查询索引 :", start);
 	start = System.currentTimeMillis();
     }

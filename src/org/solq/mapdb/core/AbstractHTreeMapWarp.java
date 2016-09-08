@@ -16,6 +16,7 @@ import java.util.function.BiConsumer;
 
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
+import org.mapdb.DBMaker.Maker;
 import org.mapdb.HTreeMap;
 import org.mapdb.Serializer;
 import org.solq.mapdb.anno.MapDbConfig;
@@ -35,7 +36,7 @@ import kotlin.jvm.functions.Function1;
  * @author solq
  **/
 public abstract class AbstractHTreeMapWarp<K, V> implements IHTreeMapWarp<K, V> {
-    private final static ScheduledExecutorService EXECUTOR_SERVICE = Executors.newScheduledThreadPool(1);
+    private final static ScheduledExecutorService EXECUTOR_SERVICE = Executors.newScheduledThreadPool(4);
     protected MapDbConfig annoConfig;
     protected Class<V> vClass;
     protected Class<K> kClass;
@@ -65,12 +66,11 @@ public abstract class AbstractHTreeMapWarp<K, V> implements IHTreeMapWarp<K, V> 
 		    break;
 		} catch (Exception e) {
 		    e.fillInStackTrace();
-		    //System.out.println(e.fillInStackTrace());
+		    // System.out.println(e.fillInStackTrace());
 		}
 	    }
 	}
     });
-     
 
     public AbstractHTreeMapWarp(String scanPath, String localFile, boolean indexDB, ISerializer<K> sk, ISerializer<V> sv) {
 	vClass = sv.getType();
@@ -79,7 +79,7 @@ public abstract class AbstractHTreeMapWarp<K, V> implements IHTreeMapWarp<K, V> 
 	this.scanRootPath = indexDB ? scanPath : Tool.pathAddFileName(scanPath, vClass.getSimpleName());
 	this.localFile = Tool.pathAddFileName(this.scanRootPath, localFile);
 	Set<String> files = Tool.listDirectory(this.scanRootPath, indexDB ? null : (f) -> {
- 	    if (f.getAbsolutePath().lastIndexOf(IndexerManager.INDEX_ID) > -1) {
+	    if (f.getAbsolutePath().lastIndexOf(IndexerManager.INDEX_ID) > -1) {
 		return false;
 	    }
 	    return true;
@@ -97,12 +97,14 @@ public abstract class AbstractHTreeMapWarp<K, V> implements IHTreeMapWarp<K, V> 
 	this.mapList = new ArrayList<>(size);
 
 	for (String f : files) {
-	    DB db = DBMaker.fileDB(f).checksumHeaderBypass()
+	    Maker mb = DBMaker.fileDB(f).checksumHeaderBypass()
 		    // .concurrencyScale(4).allocateStartSize(len)
 		    // .executorEnable()
-		    //.fileLockDisable()
-		    // .fileMmapEnable().fileMmapEnableIfSupported().fileMmapPreclearDisable().cleanerHackEnable()
-		    .make();
+		    .fileLockDisable();
+	    if (indexDB) {
+		mb.fileMmapEnable().fileMmapEnableIfSupported().fileMmapPreclearDisable().cleanerHackEnable();
+	    }
+	    DB db = mb.make();
 	    this.dbList.add(db);
 	    HTreeMap<K, V> map = db.hashMap("map", sk.getSerializer(), sv.getSerializer()).counterEnable().createOrOpen();
 	    this.mapList.add(map);
@@ -125,9 +127,10 @@ public abstract class AbstractHTreeMapWarp<K, V> implements IHTreeMapWarp<K, V> 
 		    // .expireStoreSize(16 * 1024*1024*1024)
 		    .expireExecutor(EXECUTOR_SERVICE).create();
 	}
-
-	this.asyncThread.setDaemon(true);
-	this.asyncThread.start();
+	if (annoConfig.openAsync()) {
+	    this.asyncThread.setDaemon(true);
+	    this.asyncThread.start();
+	}
     }
 
     public abstract void doPut(K key, V value);

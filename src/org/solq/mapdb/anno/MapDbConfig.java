@@ -33,7 +33,7 @@ public @interface MapDbConfig {
 
 	@Override
 	public boolean openAsync() {
- 	    return true;
+ 	    return false;
 	}
     };
 
